@@ -1,0 +1,118 @@
+# Freelance profile — one person, several clients, work arrives by email/chat, no QA team.
+profile: freelance
+description: Solo freelance work. Jobs are markdown files; the owner signs off, then delivers to the client.
+
+owner:
+  name: you
+  language: plain
+
+work_items:
+  connector: markdown           # switch to github-issues or trello per client in clients.yaml if needed
+  id_pattern: 'JOB-\d+'
+  markdown:
+    dir: jobs
+    id_prefix: JOB
+
+# Canonical → job-file status. `testing` unused (the Tester is an agent, not a person).
+statuses:
+  new: new                      # request captured, nothing agreed yet
+  planned: agreed               # scope agreed with the client
+  in_progress: building
+  ready: ready-for-me           # team is done; waiting for the owner's sign-off
+  in_review: with-client        # delivered; waiting for client feedback
+  done: done                    # client accepted (and invoiced, if billable)
+  blocked: waiting
+  wont_do: dropped
+
+# Repos, environments and checks are per client: see clients.yaml (copy clients.example.yaml).
+repos: from-clients-file
+clients_file: clients.yaml
+
+branching:
+  branch_name: '{id}-{slug}'
+  find_base_from: ask
+  pull_requests: per-client     # clients.yaml decides; solo repos often push a branch and merge locally
+  pr_title: '{id}: {summary}'
+  forbid: ['--no-verify', 'push --force to the base branch', 'deploy to client production']
+
+checks:
+  local: per-client             # from clients.yaml; if a client has none, the Developer runs at least build + tests
+  ci:
+    provider: per-client
+  e2e:
+    negative_control: true
+
+test_data:
+  prefix: demo-
+  never: [change existing passwords, touch client production data]
+
+modes: [start, revise]          # no `review`: nobody else's PRs to review
+
+gates:
+  plan: on                      # also checks the plan against the agreed scope / quote
+  scope_change: on              # becomes a change request to the client
+  borderline_triage: on
+  handoff: on                   # owner sign-off, then the client delivery draft
+  merge: on
+  cant_reproduce: on
+  deploy_production: on         # every production deploy is a gate, every time
+
+handoff_chain:
+  - role: owner                 # you look at it first
+    status: ready
+  - role: client                # then a delivery note the owner sends
+    status: in_review
+    send: draft-only
+
+routing:
+  owner:  [{ when: default, who: you }]
+  client: [{ when: default, who: from-job-file }]
+
+scope_change:
+  ask: client
+  via: email-draft
+
+templates:
+  owner_signoff: |
+    Ready for your sign-off: {id} {title}
+    - What changed: {summary}
+    - See it: {how_to_see}
+    - Checks: {checks_line}
+    - Time so far: {time}
+  client_delivery: |
+    Hi {client_name},
+    {one_line_what_is_done}
+    - How to see it: {how_to_see}
+    - What I need from you: {asks_or_none}
+    Thanks,
+    {owner_name}
+  change_request: |
+    Hi {client_name},
+    While working on {title} I noticed {what}. It isn't part of what we agreed.
+    - What it would involve: {one_line}
+    - Effect: {time_or_cost_placeholder}
+    Would you like me to include it?
+  cant_reproduce: |
+    Hi {client_name},
+    I tried {what} on {where} and it works as expected now ({evidence}). Could you check again on your side?
+
+pre_authorised: []              # nothing goes to a client without the owner
+
+demo:
+  when: observable-outcome
+  where: delivery-note
+
+time_tracking:
+  mode: billable
+  per: client
+  log_dir: timelog
+
+lessons_dir: lessons
+
+models:
+  team-lead: strongest
+  developer: strongest
+  explorer: strongest
+  reviewer: strongest
+  shipper: fast
+  tester: fast

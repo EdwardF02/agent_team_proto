@@ -1,0 +1,22 @@
+# Copy to <workspace>/profile/clients.yaml. One entry per client. Never commit the real file to a public repo.
+clients:
+  acme:
+    name: Acme Pty Ltd
+    contact: Jane                # how delivery notes address them
+    update_style: email          # email | chat | call-notes
+    work_items: markdown         # markdown | github-issues | trello (with the keys from profiles/_template)
+    repos:
+      - name: acme-web
+        path: ~/clients/acme/web
+        rules: [CLAUDE.md, AGENTS.md, README.md]
+        default_base: main
+        pull_requests: false
+    checks:
+      local:
+        - { name: build, run: npm run build }
+        - { name: tests, run: npm test }
+      ci: { provider: none }
+    environments:
+      local:   { start: npm run dev, url: http://localhost:3000 }
+      staging: { url: https://staging.acme.example, deploy: ask-owner }
+    rate: ''                     # optional, for invoice summaries

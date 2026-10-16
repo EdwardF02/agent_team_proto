@@ -1,0 +1,8 @@
+# Workspaces hold client/company material and never belong in the kit repo.
+workspaces/
+timelog/
+jobs/
+lessons/
+*.local.*
+clients.yaml
+__pycache__/

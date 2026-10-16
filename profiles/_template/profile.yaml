@@ -1,0 +1,129 @@
+# Agent Team profile — copy this folder to start a new one.
+# Every key is optional unless marked REQUIRED. The core runbook refers to these by name.
+
+profile: my-company            # REQUIRED. Short name.
+description: One line on who this is for.
+
+owner:
+  name: you                    # how agents refer to the owner in reports
+  language: plain              # plain = short human words, no jargon in questions to the owner
+
+# ── Where work comes from ────────────────────────────────────────────────────────────────
+work_items:
+  connector: markdown          # REQUIRED. markdown | github-issues | trello | jira
+  id_pattern: 'JOB-\d+'        # regex that recognises an item id in the owner's prompts
+  markdown:
+    dir: jobs
+    id_prefix: JOB
+  # github:  { repo: owner/name, status_via: labels }
+  # trello:  { board_id: abc123, key_env: TRELLO_KEY, token_env: TRELLO_TOKEN }
+  # jira:    { site: example.atlassian.net, project: ABC, cloud_id: "", token_env: JIRA_API_TOKEN }
+
+# Canonical status → this tracker's name (label / list id / transition id). Omit unused ones.
+statuses:
+  new: new
+  planned: planned
+  in_progress: in-progress
+  in_review: in-review
+  testing: testing
+  ready: ready
+  done: done
+  blocked: blocked
+  wont_do: wont-do
+
+# ── Code ─────────────────────────────────────────────────────────────────────────────────
+repos:
+  - name: app
+    path: ~/code/app
+    rules: [CLAUDE.md, AGENTS.md, CONTRIBUTING.md]   # read before touching code
+    default_base: main
+
+branching:
+  branch_name: '{id}-{slug}'
+  find_base_from: parent        # parent | label | ask — how to detect a non-default base branch
+  pull_requests: true           # false = push to a branch / main directly (solo repos)
+  pr_title: '{id}: {summary}'
+  forbid: ['--no-verify', 'push --force to the base branch']
+
+checks:
+  local:                        # run by the Developer before handoff (core §4.6)
+    - name: tests
+      run: npm test
+    - name: lint
+      run: npm run lint
+  ci:
+    provider: none              # none | github-actions | bitbucket | gitlab | other
+    watch: ''                   # background command that exits when CI for a SHA is terminal
+  e2e:
+    run: ''                     # e.g. npx playwright test {spec} --workers=1
+    negative_control: true
+
+environments:
+  local:
+    start: ''                   # how to bring the app up / refresh the running copy
+    url: http://localhost:3000
+  shared: []                    # [{name: staging, url: …, runs_branch: …}] — use only if it runs our code
+
+test_data:
+  prefix: demo-                 # names for anything created by hand
+  never: [change existing passwords]
+
+# ── People and flow ──────────────────────────────────────────────────────────────────────
+modes: [start, revise, review]  # drop `review` if nobody's PRs are reviewed by you
+
+gates:                          # on/off per gate; core §4.1 for how a gate is delivered
+  plan: on
+  scope_change: on
+  borderline_triage: on
+  handoff: on
+  merge: on
+  cant_reproduce: on
+
+handoff_chain:                  # who receives the work after the team, in order
+  - role: reviewer
+    status: in_review
+  - role: qa
+    status: testing
+
+routing:                        # who fills each role in the chain; first match wins
+  reviewer:
+    - when: default
+      who: ask-owner
+  qa:
+    - when: default
+      who: ask-owner
+
+scope_change:
+  ask: product-owner            # who decides extra scope
+  via: comment                  # comment | email-draft
+
+lanes: []                       # optional fast/slow lanes: [{name: FAST, when: '…', skips: [qa]}]
+
+templates:                      # handoff and verdict messages; {placeholders} filled by the TL
+  review_request: '@{reviewer} Requesting code review on PR = {pr}'
+  ready_for_testing: '@{qa} ready for testing'
+  verdict_approved: '@{author} LGTM.'
+  verdict_feedback: '@{author} LGTM with non-blocking feedback (details on the PR).'
+  verdict_changes: '@{author} please check the feedback on the PR.'
+
+pre_authorised: [review_request, ready_for_testing, verdict_approved, verdict_feedback, verdict_changes]
+
+demo:
+  when: observable-outcome      # never | observable-outcome | always
+  where: work-item              # work-item | pr | delivery-note
+
+# ── Housekeeping ─────────────────────────────────────────────────────────────────────────
+time_tracking:
+  mode: effort                  # off | effort | billable
+  per: item                     # item | client
+  log_dir: timelog
+
+lessons_dir: lessons
+
+models:                         # per-role model hint; tools that can't choose ignore this
+  team-lead: strongest
+  developer: strongest
+  explorer: strongest
+  reviewer: strongest
+  shipper: fast
+  tester: fast

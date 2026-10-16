@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/reread-runbook.py\"" } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash",
+        "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/deny-hook-bypass.py\"", "timeout": 10 } ] }
+    ],
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/log-session.py\" session_start" } ] }
+    ],
+    "SessionEnd": [
+      { "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/log-session.py\" session_end" } ] }
+    ]
+  }
+}
