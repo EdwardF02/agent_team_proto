@@ -31,6 +31,6 @@ fi
 [ -e "$WS/.claude/skills/team" ] || { ln -s "$KIT/adapters/claude-code/skills/team" "$WS/.claude/skills/team"; echo "  link   .claude/skills/team"; }
 [ -e "$WS/.claude/settings.json" ] && echo "  keep   .claude/settings.json (merge hooks from adapters/claude-code/settings.example.json by hand)" \
   || { render "$KIT/adapters/claude-code/settings.example.json" > "$WS/.claude/settings.json"; echo "  create .claude/settings.json"; }
-[ -e "$WS/.gitignore" ] || printf 'timelog/\nprofile/clients.yaml\n*.local.*\n' > "$WS/.gitignore"
+[ -e "$WS/.gitignore" ] || printf 'timelog/\nprofile/clients.yaml\n*.local.*\n.agent-team/\n' > "$WS/.gitignore"
 
 echo "Done. Next: edit $WS/profile/profile.yaml (and clients.yaml), then start your AI in $WS."

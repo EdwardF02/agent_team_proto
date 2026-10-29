@@ -14,8 +14,9 @@ freelancer taking jobs by email.
 core/          the principles and the flow (modes, gates, handoffs) + role briefs     ← same everywhere
 connectors/    where work items live: markdown files, GitHub Issues, Trello, Jira     ← pick one
 profiles/      the adaptation: statuses, people, checks, gates on/off, templates       ← one per setup
-adapters/      tool wiring (Claude Code reference setup)                               ← or see FOR-AI.md
-scripts/       workspace setup, time log, time report
+adapters/      tool wiring (Claude Code reference setup, incl. guard hooks)            ← or see FOR-AI.md
+scripts/       workspace setup, CI watcher, time log, time report
+tests/         hook and script tests (python3 -m unittest discover -s tests)
 ```
 
 A **workspace** is the folder you start your AI in. It gets a copy of one profile plus your own jobs,
@@ -47,6 +48,25 @@ you → Team Lead
 
 Gates are where you decide; everything between them runs on its own. Which gates exist, and who receives
 each handoff (reviewer, QA, you, a client), is set by the profile.
+
+## Guardrails in code, not just in the prompt
+
+A rule an agent only *reads* gets broken on the hundredth run. The ones that must never break are hooks
+that run before the agent's tool call and can refuse it (`adapters/claude-code/hooks/`):
+
+| Rule | Hook |
+|---|---|
+| Never skip git hooks (`--no-verify`, `commit -n`, `core.hooksPath`) | `deny-hook-bypass.py` |
+| Never hand off while CI on the branch head is red or still running | `guards.py` + `scripts/ci_state.py` |
+| Merging is the owner's call | `guards.py` |
+| Never change a real account's password | `guards.py` |
+| On the local app, log in only with test accounts | `account-guard.py` |
+| Waiting on CI or on the owner is logged as a wait, not as work | `wait-bracket.py` |
+
+They fail open: a guard whose own lookup breaks warns instead of blocking, so a network blip never stalls
+the team. After a push the Team Lead runs `scripts/watch-ci.py <sha>` in the background; it exits when CI
+is done (0 green, 1 red, 2 timeout) and that exit is what wakes the team up. GitHub Actions and
+Bitbucket Pipelines are supported.
 
 ## Making a profile for a new place
 

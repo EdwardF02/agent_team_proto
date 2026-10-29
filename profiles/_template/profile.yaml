@@ -53,7 +53,11 @@ checks:
       run: npm run lint
   ci:
     provider: none              # none | github-actions | bitbucket | gitlab | other
-    watch: ''                   # background command that exits when CI for a SHA is terminal
+    repo: ''                    # owner/name (GitHub) or workspace/repo (Bitbucket)
+    token_env: ''               # env var holding the API token (default GITHUB_TOKEN / BITBUCKET_TOKEN)
+    user_env: ''                # Bitbucket only, when the token needs a username (app passwords)
+    watch: ''                   # background command that exits when CI for a SHA is terminal, e.g.
+                                # python3 ~/agent-team/scripts/watch-ci.py {sha}
   e2e:
     run: ''                     # e.g. npx playwright test {spec} --workers=1
     negative_control: true
@@ -66,6 +70,7 @@ environments:
 
 test_data:
   prefix: demo-                 # names for anything created by hand
+  login_prefix: ''              # e.g. demo- : on the local app agents may log in only as these accounts
   never: [change existing passwords]
 
 # ── People and flow ──────────────────────────────────────────────────────────────────────

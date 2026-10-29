@@ -5,7 +5,16 @@
     ],
     "PreToolUse": [
       { "matcher": "Bash",
-        "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/deny-hook-bypass.py\"", "timeout": 10 } ] }
+        "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/deny-hook-bypass.py\"", "timeout": 10 } ] },
+      { "matcher": "Bash|mcp__.*",
+        "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/guards.py\"", "timeout": 45 } ] },
+      { "matcher": "mcp__playwright__.*",
+        "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/account-guard.py\"", "timeout": 10 } ] },
+      { "matcher": "Agent",
+        "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/wait-bracket.py\"", "timeout": 15 } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/wait-bracket.py\"", "timeout": 15 } ] }
     ],
     "SessionStart": [
       { "hooks": [ { "type": "command", "command": "python3 \"{{KIT}}/adapters/claude-code/hooks/log-session.py\" session_start" } ] }
