@@ -46,6 +46,9 @@ you → Team Lead
   Mode C  Review  : review someone's PR → post findings → deterministic verdict (optional per profile)
 ```
 
+**See it run:** [docs/example-run.md](docs/example-run.md) follows one job from the client's email to
+sign-off, including a blocked hook bypass, a red CI run sent back to the Developer, and the time report.
+
 Gates are where you decide; everything between them runs on its own. Which gates exist, and who receives
 each handoff (reviewer, QA, you, a client), is set by the profile.
 
